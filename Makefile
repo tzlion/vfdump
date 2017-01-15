@@ -10,14 +10,14 @@
 # TITLE is the title of the rom as stored in the header
 # GAMECODE & MAKERCODE, see above for TITLE 
 #---------------------------------------------------------------------------------
-TARGET		:=	SendSave_mb
+TARGET		:=	VFDump_mb
 BUILD		:=	build
 SOURCES		:=	src
 INCLUDES	:=	
 
-TITLE		:=	SendSave
-GAMECODE	:=	SdSv
-MAKERCODE	:=	MC
+TITLE		:=	VFDump
+GAMECODE	:=	VFDM
+MAKERCODE	:=	LN
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -38,18 +38,18 @@ LDFLAGS	=	$(ARCH) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # path to tools - this can be deleted if you set the path in windows
 #---------------------------------------------------------------------------------
-export PATH		:=	/c/dev/gba/devkitARM_r8/bin:/bin:/c/bin
+export PATH := $(HOME)/devkitPro/devkitARM/bin/:$(PATH)
 
 #---------------------------------------------------------------------------------
 # absolute path required since this makefile uses the build directory
 # as the working directory
 #---------------------------------------------------------------------------------
-LIBGBA	:=	/c/dev/gba/libgba
+LIBGBA	:=	$(HOME)/devkitPro/libgba
 
 #---------------------------------------------------------------------------------
 # the prefix on the compiler executables
 #---------------------------------------------------------------------------------
-PREFIX			:=	arm-elf-
+PREFIX			:=	arm-none-eabi-
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------

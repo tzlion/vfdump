@@ -56,7 +56,7 @@ void text_newline(void)
 		row = 0;
 	}
 	col = 0;
-	BG0VOFS = (row + 13) * 8;
+	REG_BG0VOFS = (row + 13) * 8;
 	for (i = 0;i<30;i++)
 	{
 		text_char(' ');
@@ -90,8 +90,8 @@ void text_init(void)
 	{
 		*temppointer++ = 0x00;
 	}
-	BG0VOFS = 0;
-	BG0HOFS = 0;
+	REG_BG0VOFS = 0;
+	REG_BG0HOFS = 0;
 	text_newline();
 
 }
