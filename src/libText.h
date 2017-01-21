@@ -1,8 +1,10 @@
 /*
 	libText
 	Simple text drawing routines
+	Original by chishm, minimal modifications by taizou
 	Data types are from wintermute's gba_types.h libgba library.
-	Code and font used from r6502's BGScroller example
+	Code used from r6502's BGScroller example
+    Font: PCPaint Bold via BBD
 */
 
 

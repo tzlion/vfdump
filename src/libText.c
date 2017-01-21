@@ -1,8 +1,10 @@
 /*
 	libText
 	Simple text drawing routines
+	Original by chishm, minimal modifications by taizou
 	Data types are from wintermute's gba_types.h libgba library.
-	Code and font used from r6502's BGScroller example
+	Code used from r6502's BGScroller example
+    Font: PCPaint Bold via BBD
 */
 
 #include "libText.h"
@@ -11,7 +13,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "r6502_portfont.h"
+#include "pcpboldfont.h"
 
 #define MAPADDRESS		0x0600F800	// our base map address
 
@@ -82,7 +84,7 @@ void text_init(void)
 	temppointer = (u16 *)VRAM;
 	for(i=0; i<(48*32); i++)
 	{
-		*temppointer++ = *((u16 *)r6502_portfont + i);
+		*temppointer++ = *((u16 *)pcpboldfont + i);
 	}
 	// clear screen map with tile 0 ('space' tile) (256x256 halfwords)
 	temppointer = (u16 *)MAPADDRESS;

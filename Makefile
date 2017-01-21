@@ -36,7 +36,7 @@ AFLAGS	:=	$(ARCH)
 LDFLAGS	=	$(ARCH) -Wl,-Map,$(notdir $@).map
 
 #---------------------------------------------------------------------------------
-# path to tools - this can be deleted if you set the path in windows
+# path to tools - this can be deleted if you set the path in your OS
 #---------------------------------------------------------------------------------
 export PATH := $(HOME)/devkitPro/devkitARM/bin/:$(PATH)
 

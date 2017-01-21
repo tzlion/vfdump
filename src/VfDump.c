@@ -1,7 +1,9 @@
 //---------------------------------------------------------------------------------
-// Based on GBA sample code for devkitARM - http://www.devkit.tk
-// Transfers GBA backup memory to and from PC
+// V F D U M P
+// For dumping GBA games including Vast Fame protected carts
+// Vaguely based on SendSave
 //---------------------------------------------------------------------------------
+
 #include "gba_interrupt.h"
 #include "xcomms.h"
 #include "gba_input.h"
@@ -14,9 +16,7 @@
 
 #include "libVf.h"
 #include "libText.h"
-//---------------------------------------------------------------------------------
-// Constants, variables and Addresses
-//---------------------------------------------------------------------------------
+
 u8 save_data[0x20000] __attribute__ ((section (".sbss")));
 const char file_name[] = {"GBA_Cart.bin"};
 
@@ -36,27 +36,22 @@ struct bothKeys
 	char keyboardKey;
 };
 
-//---------------------------------------------------------------------------------
 void VblankInterrupt()
-//---------------------------------------------------------------------------------
 {
 	frame += 1;
 	scanKeys();
 }
 
-
-
-void doVfThing1()
+void findVfAddressReordering()
 {
 	for (u8 mode=0x00;mode<0x4;mode++)  { // Modes go up to F validly but 0-3 contain all the unique address swaps
-
 		dprintf("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+4,mode+8,mode+12);
 		text_print("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+4,mode+8,mode+12);
 		u16 result;
 		u16 results[0xFFFF];
 		u16 currentWriteAddress = 0x0001;
 		for(int z=0;z<0x0F;z++){ // It never gets the F tho is that a problem // I think nah
-			BlankVFSRam();
+			BlankSram();
 			result = FigureOutDestinationLocationForWrite(mode,currentWriteAddress);
 			results[result] = z;
 			currentWriteAddress = currentWriteAddress << 1;
@@ -70,18 +65,18 @@ void doVfThing1()
 	}
 }
 
-void doVfThing2()
+void findVfValueReordering()
 {
 	for (u8 mode=0x00;mode<0x10;mode+=4)  { // Modes 0,4,8,C should have the regular addressing
 		dprintf("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+1,mode+2,mode+3);
 		text_print("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+1,mode+2,mode+3);
 		int result;
 		int results[0xFF];
-		DoVFSRamInit(mode);
+		DoVfSramInit(mode);
 		int writeValue=1;
 		for(int z=0;z<8;z++){
-			BlankVFSRam();
-			result=DoVFSRamWriteAndRead(0x6969,writeValue,0x6969);
+			BlankSram();
+			result=DoSramWriteAndRead(0x6969,writeValue,0x6969);
 			results[result] = z;
 			writeValue *= 2;
 		}
@@ -93,28 +88,12 @@ void doVfThing2()
 	}
 }
 
-u8 doSramThingAndPrintResult(u16 writeAddress, u8 writeValue, u16 readAddress,bool actuallyWrite)
-{
-    u8 result;
-	if ( actuallyWrite ) {
-		result = DoVFSRamWriteAndRead(writeAddress,writeValue,readAddress);
-		dprintf("Wrote %02x to   %04x\n",writeValue,writeAddress);
-		text_print("Wrote %02x to   %04x\n",writeValue,writeAddress);
-	} else {
-		result = DoVFSRamRead(readAddress);
-	}
-
-	dprintf("Read  %02x from %04x\n",result,readAddress);
-	text_print("Read  %02x from %04x\n",result,readAddress);
-    return result;
-}
-
 void readSramToFile(int handle)
 {
 	u32 memSize = 0x10000;
 	dprintf("Getting chunk of 0x10000 from sram...\n");
 	text_print("Read 0x10000 from sram\n");
-	DumpSRam(save_data);
+	DumpSram(save_data);
 	dfwrite(save_data,1,memSize,handle);
 }
 
@@ -137,8 +116,8 @@ struct bothKeys readKeys()
 
 struct bothKeys waitForKey()
 {
-	irqEnable(IRQ_VBLANK); // Enable Vblank Interrupt to allow VblankIntrWait
-	REG_IME = 1; // Allow Interrupts
+	irqEnable(IRQ_VBLANK); // Enable Vblank interrupt to allow VblankIntrWait
+	REG_IME = 1; // Allow interrupts
 	struct bothKeys keyInput;
 	keyInput.gbaKeys = 0;
 	keyInput.keyboardKey = 0;
@@ -164,7 +143,7 @@ void romdump(bool vfame,bool wholeCartArea)
 	dfseek(handle,0,SEEK_SET);
 
 	if (vfame) {
-		DoVFRomInit();
+		DoVfRomInit();
 	}
 	while(offset<totalSize) {
 		readRomToFile(handle,offset,chunkSize);
@@ -174,11 +153,7 @@ void romdump(bool vfame,bool wholeCartArea)
 	dfclose(handle);
 }
 
-//---------------------------------------------------------------------------------
-// Program entry point
-//---------------------------------------------------------------------------------
 int main(void)
-//---------------------------------------------------------------------------------
 {
 	u32 x;
 
@@ -225,10 +200,10 @@ int main(void)
         romdump(true,false);
     } else if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'R' || keyInput.keyboardKey == 'r') {
         PRINT("Let's GET VALUE REORDERING\n");
-        doVfThing2();
+        findVfValueReordering();
     } else if (keyInput.gbaKeys == KEY_SELECT || keyInput.keyboardKey == 'S' || keyInput.keyboardKey == 's') {
         PRINT("Let's GET ADDRESS REORDERING\n");
-        doVfThing1();
+        findVfAddressReordering();
     } else if (keyInput.gbaKeys == KEY_DOWN || keyInput.keyboardKey == 'M' || keyInput.keyboardKey == 'm') {
         PRINT("MEGA DUMP EVERYTHING\n");
 		romdump(false,true);
@@ -242,10 +217,7 @@ int main(void)
 	PRINT("\nPress any key to reset GBA\n");
 	waitForKey();
 
-
-    SystemCall(0x26);
+    SystemCall(0x26); // reset!
 
 	return (0);
 }
-
-

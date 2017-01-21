@@ -6,7 +6,7 @@
 volatile u8 *sram= (u8*) 0x0E000000;
 volatile u8 *rom= (u8*) 0x08000000;
 
-void DoVFSRamWritesPart1(void)
+void startModeChange(void)
 {
     sram[0xFFF8] = 0x99;
     sram[0xFFF9] = 0x02;
@@ -15,8 +15,7 @@ void DoVFSRamWritesPart1(void)
     sram[0xFFFC] = 0x03;
 }
 
-
-void DoVFSRamWritesPart2(void)
+void endModeChange(void)
 {
     sram[0xFFF8] = 0x99;
     sram[0xFFF9] = 0x03;
@@ -25,58 +24,50 @@ void DoVFSRamWritesPart2(void)
     sram[0xFFFC] = 0x56;
 }
 
-void DoVFRomInit(void)
+void DoVfRomInit(void)
 {
-    DoVFSRamWritesPart1();
+    startModeChange();
     sram[0xFFFD] = 0x00;
-    DoVFSRamWritesPart2();
+    endModeChange();
 }
 
-void DoVFSRamInit(u8 ffeValue)
+void DoVfSramInit(u8 mode)
 {
-    DoVFSRamWritesPart1();
-    sram[0xFFFE] = ffeValue;
-    DoVFSRamWritesPart2();
+    startModeChange();
+    sram[0xFFFE] = mode;
+    endModeChange();
 }
 
-u8 DoVFSRamWriteAndRead(u16 writeLocation,u8 writeValue, u16 readLocation)
+u8 DoSramWriteAndRead(u16 writeLocation,u8 writeValue, u16 readLocation)
 {
     sram[writeLocation] = writeValue;
     return sram[readLocation];
 }
 
-u8 DoVFSRamRead(u16 readLocation)
+u8 DoSramRead(u16 readLocation)
 {
     return sram[readLocation];
 }
 
-void DumpSRam(u8* data)
+void DumpSram(u8* data)
 {
-	u16 x;
-
-    for (x = 0; x < 0xFFFF; ++x)
-	{
+    for (u16 x = 0; x < 0xFFFF; ++x){
 		data[x] = sram[x];
 	}
 }
 
-
-void BlankVFSRam()
+void BlankSram()
 {
-	u16 x;
-
-    for (x = 0; x < 0xFFFF; ++x)
-	{
+    for (u16 x = 0; x < 0xFFFF; ++x){
 		sram[x] = 0x00;
 	}
 }
 
-
 // ONLY WORKS for 0001,0002,0004..powers of 2
 u16 FigureOutDestinationLocationForWrite(u8 mode,u16 write)
 {
-    BlankVFSRam();
-    DoVFSRamInit(mode);
+    BlankSram();
+    DoVfSramInit(mode);
     sram[write] = 0x20;
     u16 currentReadAddress = 0x0001;
     for(u8 y=0;y<0xf;y++){
@@ -88,25 +79,9 @@ u16 FigureOutDestinationLocationForWrite(u8 mode,u16 write)
     return 0xffff;
 }
 
-void FillVFSRam()
-{
-	u16 x;
-
-    for (x = 0; x < 0xFFFF; ++x)
-	{
-		sram[x] = 0x69;
-	}
-}
-
 void DumpRom(u8* data, u32 startingOffset, u32 memSize)
 {
-	u32 x;
-
-    for (x = 0; x < memSize; ++x)
-	{
+    for (u32 x = 0; x < memSize; ++x){
 		data[x] = rom[x+startingOffset];
 	}
-
 }
-
-
