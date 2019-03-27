@@ -116,6 +116,19 @@ void readRomToFile32(int handle,u32 offset,u32 chunkSize)
     dfwrite(save_data32,1,chunkSize,handle);
 }
 
+u32 readRomToFile32Yj(int handle, u32 offset, u32 chunkSize)
+{
+    dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
+    text_print("Read %08X from %08X\n",chunkSize,offset);
+    u32 result = DumpRom32Yj(save_data32, offset, chunkSize);
+    dfwrite(save_data32,1,chunkSize,handle);
+    if ( result != 0 ) {
+        text_print("Protection trip %08x\n",result);
+        dprintf("Protection trip %08x\n",result);
+    }
+    return result;
+}
+
 struct bothKeys readKeys()
 {
     struct bothKeys keyInput;
@@ -228,9 +241,35 @@ void testDump32(u32 fromOffset)
     dfclose(handle);
 }
 
+void testDump32Yj(u32 fromOffset)
+{
+    int handle;
+    u32 chunkSize;
+
+    chunkSize = 0x4000 * 4;
+
+    u32 totalSize = 0x2000000;
+    u32 offset = fromOffset;
+
+    handle = dfopen(file_name,"wb");
+    dfseek(handle,0,SEEK_SET);
+
+    u32 result;
+
+    while(offset<totalSize) {
+        result = readRomToFile32Yj(handle, offset, chunkSize);
+        if ( result != 0 ) {
+            break;
+        }
+        offset+=chunkSize;
+    }
+
+    dfclose(handle);
+}
 
 void experimentalDump()
 {
+    testDump32Yj(0);
 }
 
 void printRomName()

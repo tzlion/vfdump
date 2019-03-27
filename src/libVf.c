@@ -97,6 +97,20 @@ void DumpRom32(u32* data, u32 startingOffset, u32 memSize)
 	}
 }
 
+u32 DumpRom32Yj(u32 *data, u32 startingOffset, u32 memSize)
+{
+    startingOffset /= 4;
+    memSize /= 4;
+    for (u32 x = 0; x < memSize; ++x){
+        int actualAddress = (x+startingOffset)*4;
+        data[x] = rom32[x+startingOffset];
+        if (rom32[0] == 0) {
+            return actualAddress;
+        }
+    }
+    return 0;
+}
+
 void DumpRom16(u16* data, u32 startingOffset, u32 memSize)
 {
     startingOffset /= 2;
