@@ -229,6 +229,10 @@ void testDump32(u32 fromOffset)
 }
 
 
+void experimentalDump()
+{
+}
+
 void printRomName()
 {
     u32 x;
@@ -270,12 +274,18 @@ int main(void)
 
     text_print("Press A to dump normal ROM\n");
     text_print("Press B to dump VF ROM\n");
+    text_print("DOWN to dump whole cart area\n");
+    text_print("RIGHT for EXPERIMENT\n");
+    text_print("UP to reset GBA\n");
     text_print("START to get value reordering\n");
     text_print("SELECT to get addr reordering\n");
     text_print("\n*SEL/START will erase save!*\n");
-    dprintf("Press D to dump ROM\n");
+    dprintf("Press D to dump normal ROM\n");
     dprintf("Press V to dump VF ROM\n");
-    dprintf("Press R to get value reordering\n");
+    dprintf("Press M to dump whole cart area\n");
+    dprintf("Press X for EXPERIMENT\n");
+    dprintf("Press R to reset GBA\n");
+    dprintf("Press L to get value reordering\n");
     dprintf("Press S to get address reordering\n");
     dprintf("\n* R/S will erase your save data!\n");
     PRINT("\n");
@@ -284,16 +294,16 @@ int main(void)
         keyInput = waitForKey();
     } while ( (keyInput.gbaKeys != (KEY_A)) && (keyInput.keyboardKey !='D') && (keyInput.keyboardKey !='d') &&
               (keyInput.gbaKeys != (KEY_B)) && (keyInput.keyboardKey !='V') && (keyInput.keyboardKey !='v')  &&
-              (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='R') && (keyInput.keyboardKey !='r') &&
+              (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='L') && (keyInput.keyboardKey !='l') &&
               (keyInput.gbaKeys != (KEY_SELECT)) && (keyInput.keyboardKey !='S') && (keyInput.keyboardKey !='s') &&
               (keyInput.gbaKeys != (KEY_DOWN)) && (keyInput.keyboardKey !='M') && (keyInput.keyboardKey !='m')  &&
-              (keyInput.gbaKeys != (KEY_UP)) && (keyInput.keyboardKey !='T') && (keyInput.keyboardKey !='t') &&
-              (keyInput.gbaKeys != (KEY_RIGHT)) && (keyInput.keyboardKey !='Q') && (keyInput.keyboardKey !='q') );
+              (keyInput.gbaKeys != (KEY_UP)) && (keyInput.keyboardKey !='R') && (keyInput.keyboardKey !='r') &&
+              (keyInput.gbaKeys != (KEY_RIGHT)) && (keyInput.keyboardKey !='X') && (keyInput.keyboardKey !='x') );
 
     if ( keyInput.gbaKeys == KEY_B || keyInput.keyboardKey == 'V' || keyInput.keyboardKey == 'v' ) {
         PRINT("Let's VF DUMP\n");
         romdump(true,false);
-    } else if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'R' || keyInput.keyboardKey == 'r') {
+    } else if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'L' || keyInput.keyboardKey == 'l') {
         PRINT("Let's GET VALUE REORDERING\n");
         findVfValueReordering();
     } else if (keyInput.gbaKeys == KEY_SELECT || keyInput.keyboardKey == 'S' || keyInput.keyboardKey == 's') {
@@ -305,12 +315,17 @@ int main(void)
     } else if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'D' || keyInput.keyboardKey == 'd')  {
         PRINT("Let's NORMAL DUMP\n");
         romdump(false,false);
+    } else if (keyInput.gbaKeys == KEY_RIGHT || keyInput.keyboardKey == 'X' || keyInput.keyboardKey == 'x')  {
+        PRINT("Let's EXPERIMENT SON\n");
+        experimentalDump();
     }
 
-    PRINT("\nDone\n");
+    if (!(keyInput.gbaKeys == KEY_UP || keyInput.keyboardKey == 'R' || keyInput.keyboardKey == 'r')) {
+        PRINT("\nDone\n");
 
-    PRINT("\nPress any key to reset GBA\n");
-    waitForKey();
+        PRINT("\nPress any key to reset GBA\n");
+        waitForKey();
+    }
 
     SystemCall(0x26); // reset!
 
