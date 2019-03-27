@@ -196,10 +196,19 @@ void simulateBiosReads()
     dfclose(handle);
 }
 
-int main(void)
+void printRomName()
 {
     u32 x;
+    PRINT("\n");
+    PRINT("NAME: ");
+    for (x = 0; x < 12; x++){
+        PUTCHAR(pak_ROM[160 + x]);
+    }
 
+}
+
+int main(void)
+{
     struct bothKeys keyInput;
 
     // Set up the interrupt handlers
@@ -209,10 +218,20 @@ int main(void)
 
     xcomms_init();
     text_init();
-    PRINT("\n");
-    PRINT("NAME: ");
-    for (x = 0; x < 12; x++){
-        PUTCHAR(pak_ROM[160 + x]);
+
+    text_print("Press A to read header\n");
+    text_print("Press B to skip\n");
+    dprintf("Press Y to read header\n");
+    dprintf("Press N to skip\n");
+
+    do {
+        keyInput = waitForKey();
+    } while ( (keyInput.gbaKeys != (KEY_A)) && (keyInput.keyboardKey !='Y') && (keyInput.keyboardKey !='y') &&
+              (keyInput.gbaKeys != (KEY_B)) && (keyInput.keyboardKey !='N') && (keyInput.keyboardKey !='n'));
+
+    if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'Y' || keyInput.keyboardKey == 'y')  {
+        //simulateBiosReads();
+        printRomName();
     }
     PRINT("\n\n");
 
