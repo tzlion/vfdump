@@ -18,6 +18,8 @@
 #include "libText.h"
 
 u8 save_data[0x20000] __attribute__ ((section (".sbss")));
+u16 save_data16[0x2000] __attribute__ ((section (".sbss")));
+u32 save_data32[0x4000] __attribute__ ((section (".sbss")));
 const char file_name[] = {"GBA_Cart.bin"};
 
 #define PRINT(m) { dprintf(m); text_row(m);}
@@ -103,6 +105,15 @@ void readRomToFile(int handle,u32 offset,u32 chunkSize)
     text_print("Read %08X from %08X\n",chunkSize,offset);
     DumpRom(save_data,offset,chunkSize);
     dfwrite(save_data,1,chunkSize,handle);
+}
+
+
+void readRomToFile32(int handle,u32 offset,u32 chunkSize)
+{
+    dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
+    text_print("Read %08X from %08X\n",chunkSize,offset);
+    DumpRom32(save_data32,offset,chunkSize);
+    dfwrite(save_data32,1,chunkSize,handle);
 }
 
 struct bothKeys readKeys()
@@ -195,6 +206,28 @@ void simulateBiosReads()
 
     dfclose(handle);
 }
+
+void testDump32(u32 fromOffset)
+{
+    int handle;
+    u32 chunkSize;
+
+    chunkSize = 0x4000 * 4;
+
+    u32 totalSize = 0x2000000;
+    u32 offset = fromOffset;
+
+    handle = dfopen(file_name,"wb");
+    dfseek(handle,0,SEEK_SET);
+
+    while(offset<(fromOffset+totalSize)) {
+        readRomToFile32(handle,offset,chunkSize);
+        offset+=chunkSize;
+    }
+
+    dfclose(handle);
+}
+
 
 void printRomName()
 {
