@@ -116,11 +116,11 @@ void readRomToFile32(int handle,u32 offset,u32 chunkSize)
     dfwrite(save_data32,1,chunkSize,handle);
 }
 
-u32 readRomToFile32Yj(int handle, u32 offset, u32 chunkSize)
+u32 readRomToFile32Yj(int handle, u32 offset, u32 chunkSize, u32* skips)
 {
     dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
     text_print("Read %08X from %08X\n",chunkSize,offset);
-    u32 result = DumpRom32YjForRudy(save_data32, offset, chunkSize);
+    u32 result = DumpRom32Yj(save_data32, offset, chunkSize, skips, 0x21a100, 0x21c000);
     dfwrite(save_data32,1,chunkSize,handle);
     if ( result != 0 ) {
         text_print("Protection trip %08x\n",result);
@@ -241,6 +241,18 @@ void testDump32(u32 fromOffset)
     dfclose(handle);
 }
 
+void readSkipsFromFile(u32* skips)
+{
+    int handle = dfopen("skips.bin","rb");
+    dfseek(handle,0,SEEK_SET);
+    dfread(skips,4,16,handle);
+    dfclose(handle);
+    for(int x=0;x<16;x++) {
+        // swap endianness for some reason
+        skips[x] = ((skips[x]>>24)&0xff) | ((skips[x]<<8)&0xff0000) | ((skips[x]>>8)&0xff00) | ((skips[x]<<24)&0xff000000);
+    }
+}
+
 void testDump32Yj(u32 fromOffset)
 {
     int handle;
@@ -256,8 +268,11 @@ void testDump32Yj(u32 fromOffset)
 
     u32 result;
 
+    u32 skips[16];
+    readSkipsFromFile(skips);
+
     while(offset<totalSize) {
-        result = readRomToFile32Yj(handle, offset, chunkSize);
+        result = readRomToFile32Yj(handle, offset, chunkSize, skips);
         if ( result != 0 ) {
             break;
         }
