@@ -14,8 +14,6 @@ void DumpRom(u8* data, u32 startingOffset, u32 memSize);
 void DumpRom16(u16* data, u32 startingOffset, u32 memSize);
 void DumpRom32(u32* data, u32 startingOffset, u32 memSize);
 u32 DumpRom32Yj(u32* data, u32 startingOffset, u32 memSize, const u32 skips[16], int skipBlockStart, int skipBlockEnd);
-u32 DumpRom32YjForMario(u32* data, u32 startingOffset, u32 memSize);
-u32 DumpRom32YjForRudy(u32* data, u32 startingOffset, u32 memSize);
 void DumpSram(u8* data);
 void BlankSram(void);
 
