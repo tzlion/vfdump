@@ -18,7 +18,7 @@
 #include "libText.h"
 
 u8 save_data[0x20000] __attribute__ ((section (".sbss")));
-u16 save_data16[0x2000] __attribute__ ((section (".sbss")));
+//u16 save_data16[0x2000] __attribute__ ((section (".sbss"))); // crashes? too much mem usage?
 u32 save_data32[0x4000] __attribute__ ((section (".sbss")));
 const char file_name[] = {"GBA_Cart.bin"};
 
