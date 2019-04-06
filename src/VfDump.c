@@ -116,11 +116,11 @@ void readRomToFile32(int handle,u32 offset,u32 chunkSize)
     dfwrite(save_data32,1,chunkSize,handle);
 }
 
-u32 readRomToFile32Yj(int handle, u32 offset, u32 chunkSize, u32* skips)
+u32 readRomToFile32Yj(int handle, u32 offset, u32 chunkSize, u32* skips, u32 skipBlockStart, u32 skipBlockEnd)
 {
     dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
     text_print("Read %08X from %08X\n",chunkSize,offset);
-    u32 result = DumpRom32Yj(save_data32, offset, chunkSize, skips, 0x21a100, 0x21c000);
+    u32 result = DumpRom32Yj(save_data32, offset, chunkSize, skips, skipBlockStart, skipBlockEnd);
     dfwrite(save_data32,1,chunkSize,handle);
     if ( result != 0 ) {
         text_print("Protection trip %08x\n",result);
@@ -245,9 +245,9 @@ void readSkipsFromFile(u32* skips)
 {
     int handle = dfopen("skips.bin","rb");
     dfseek(handle,0,SEEK_SET);
-    dfread(skips,4,16,handle);
+    dfread(skips,4,18,handle);
     dfclose(handle);
-    for(int x=0;x<16;x++) {
+    for(int x=0;x<18;x++) {
         // swap endianness for some reason
         skips[x] = ((skips[x]>>24)&0xff) | ((skips[x]<<8)&0xff0000) | ((skips[x]>>8)&0xff00) | ((skips[x]<<24)&0xff000000);
     }
@@ -268,11 +268,12 @@ void testDump32Yj(u32 fromOffset)
 
     u32 result;
 
-    u32 skips[16];
+    u32 skips[18];
     readSkipsFromFile(skips);
+    // last 2 values in the file are actually the boundaries of the big skippy areas
 
     while(offset<totalSize) {
-        result = readRomToFile32Yj(handle, offset, chunkSize, skips);
+        result = readRomToFile32Yj(handle, offset, chunkSize, skips, skips[16], skips[17]);
         if ( result != 0 ) {
             break;
         }
