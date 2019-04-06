@@ -120,7 +120,7 @@ u32 readRomToFile32Yj(int handle, u32 offset, u32 chunkSize)
 {
     dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
     text_print("Read %08X from %08X\n",chunkSize,offset);
-    u32 result = DumpRom32Yj(save_data32, offset, chunkSize);
+    u32 result = DumpRom32YjForRudy(save_data32, offset, chunkSize);
     dfwrite(save_data32,1,chunkSize,handle);
     if ( result != 0 ) {
         text_print("Protection trip %08x\n",result);

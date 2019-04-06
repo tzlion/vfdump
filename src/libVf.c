@@ -97,18 +97,51 @@ void DumpRom32(u32* data, u32 startingOffset, u32 memSize)
 	}
 }
 
-u32 DumpRom32Yj(u32 *data, u32 startingOffset, u32 memSize)
+u32 DumpRom32Yj(u32* data, u32 startingOffset, u32 memSize, const int skips[16], int skipBlockStart, int skipBlockEnd)
 {
     startingOffset /= 4;
     memSize /= 4;
     for (u32 x = 0; x < memSize; ++x){
         int actualAddress = (x+startingOffset)*4;
+        bool skipMatch = false;
+        for(u8 y = 0; y < 16; y++) {
+            if (actualAddress == skips[y]) {
+                skipMatch = true;
+                break;
+            }
+        }
+        if (skipMatch || (actualAddress >= skipBlockStart && actualAddress < skipBlockEnd)) {
+            data[x] = 0x69696969;
+            continue;
+        }
         data[x] = rom32[x+startingOffset];
-        if (rom32[0] == 0) {
+        if (rom32[0] == 0) { // detect if protection was tripped
             return actualAddress;
         }
     }
     return 0;
+}
+
+u32 DumpRom32YjForMario(u32 *data, u32 startingOffset, u32 memSize)
+{
+    // FOR MARIO DX
+    int skips[16] = {
+        0x00000010, 0x00000540, 0x0000067c, 0x000006c0, 0x00000878, 0x000009a0, 0x00000b70, 0x00000d20,
+        0x000015c4, 0x002002e0, 0x002003b4, 0x00200614, 0x002008cc, 0x00200a80, 0xffffffff, 0xffffffff
+        // Seems like the 0x200??? ones are the same as the other game but just minus 4?
+        // The last 3 were just assumed from it
+    };
+    return DumpRom32Yj(data, startingOffset, memSize, skips, 0x21a100, 0x21c000);
+}
+
+u32 DumpRom32YjForRudy(u32* data, u32 startingOffset, u32 memSize)
+{
+    // for Digimon Rudy & Sapphire
+    int skips[16] = {
+        0x00000540, 0x00000858, 0x00000f2c, 0x00001574, 0x000018c4, 0x00002064, 0x000024bc, 0x002002e4,
+        0x002003b8, 0x00200618, 0x002008d0, 0x00200a84, 0xffffffff, 0xffffffff, 0xffffffff, 0xffffffff
+    };
+    return DumpRom32Yj(data, startingOffset, memSize, skips, 0x21a100, 0x21c000);
 }
 
 void DumpRom16(u16* data, u32 startingOffset, u32 memSize)
