@@ -111,7 +111,7 @@ u32 DumpRom32Yj(u32* data, u32 startingOffset, u32 memSize, const u32 skips[16],
             }
         }
         if (skipMatch || (actualAddress >= skipBlockStart && actualAddress < skipBlockEnd)) {
-            data[x] = 0x69696969;
+            data[x] = 0x50494B53; // ascii "SKIP"
             continue;
         }
         data[x] = rom32[x+startingOffset];
