@@ -328,7 +328,7 @@ int main(void)
 
     text_print("Press A to dump normal ROM\n");
     text_print("Press B to dump VF ROM\n");
-    text_print("RIGHT to dump YJencryptedT\n");
+    text_print("RIGHT to dump YJencrypted\n");
     text_print("START to get value reordering\n");
     text_print("SELECT to get addr reordering\n");
     text_print("\n*SEL/START will erase save!*\n");
