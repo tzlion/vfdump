@@ -220,6 +220,12 @@ void simulateBiosReads()
     dfclose(handle);
 }
 
+void startGame()
+{
+    u32 address=0x8000000;
+    ((void (*)(void))address)();
+}
+
 void testDump32(u32 fromOffset)
 {
     int handle;
@@ -313,14 +319,20 @@ int main(void)
 
     text_print("Press A to read header\n");
     text_print("Press B to skip\n");
+    text_print("Press START to start game\n");
     dprintf("Press Y to read header\n");
     dprintf("Press N to skip\n");
+    dprintf("Press S to start game\n");
 
     do {
         keyInput = waitForKey();
     } while ( (keyInput.gbaKeys != (KEY_A)) && (keyInput.keyboardKey !='Y') && (keyInput.keyboardKey !='y') &&
+              (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='S') && (keyInput.keyboardKey !='s') &&
               (keyInput.gbaKeys != (KEY_B)) && (keyInput.keyboardKey !='N') && (keyInput.keyboardKey !='n'));
 
+    if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'S' || keyInput.keyboardKey == 's')  {
+        startGame();
+    }
     if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'Y' || keyInput.keyboardKey == 'y')  {
         printRomName();
     }
