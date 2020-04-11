@@ -99,6 +99,7 @@ void DumpRom32(u32* data, u32 startingOffset, u32 memSize)
 
 u32 DumpRom32Yj(u32* data, u32 startingOffset, u32 memSize, const u32 skips[16], int skipBlockStart, int skipBlockEnd)
 {
+    u32 initialRomZeroValue = rom32[0];
     startingOffset /= 4;
     memSize /= 4;
     for (u32 x = 0; x < memSize; ++x){
@@ -115,7 +116,7 @@ u32 DumpRom32Yj(u32* data, u32 startingOffset, u32 memSize, const u32 skips[16],
             continue;
         }
         data[x] = rom32[x+startingOffset];
-        if (rom32[0] == 0) { // detect if protection was tripped
+        if (rom32[0] != initialRomZeroValue) { // detect if protection was tripped
             return actualAddress;
         }
     }
