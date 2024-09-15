@@ -40,9 +40,9 @@ Supported actions:
 
 Development
 -----------
-Needs devkitARM and libgba to build, currently being built against devkitARM version 45
+Needs devkitARM and libgba to build, currently being built against devkitARM r65-1
 
-To build: `make`  
-to cleanup all the crap it generates: `make clean`
+To build: `make build`  
+to clean up everything it generates: `make clean`
 
-You may need to change the paths in the makefile depending on where you have stuff installed
+You may need to change the value of DEVKITPRO_BASE_DIR in the makefile depending on where you have it installed
