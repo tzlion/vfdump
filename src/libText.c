@@ -4,7 +4,7 @@
 	Original by chishm, minimal modifications by taizou
 	Data types are from wintermute's gba_types.h libgba library.
 	Code used from r6502's BGScroller example
-    Font: PCPaint Bold via BBD
+	Font: PCPaint Bold via BBD
 */
 
 #include "libText.h"
