@@ -152,14 +152,14 @@ struct bothKeys waitForKey()
 	return keyInput;
 }
 
-void romdump(bool vfame,bool wholeCartArea)
+void romdump(bool vfame)
 {
 	int handle;
 	u32 chunkSize;
 
-	chunkSize = 0x8000;
+	chunkSize = 0x10000;
 
-	u32 totalSize = wholeCartArea ? 0x8000000 : 0x2000000;
+	u32 totalSize = 0x2000000;
 	u32 offset = 0;
 
 	handle = dfopen(file_name,"wb");
@@ -169,7 +169,7 @@ void romdump(bool vfame,bool wholeCartArea)
 		DoVfRomInit();
 	}
 	while(offset<totalSize) {
-		readRomToFile(handle,offset,chunkSize);
+		readRomToFile32(handle,offset,chunkSize);
 		offset+=chunkSize;
 	}
 
@@ -180,27 +180,6 @@ void startGame()
 {
 	u32 address=0x8000000;
 	((void (*)(void))address)();
-}
-
-void testDump32(u32 fromOffset)
-{
-	int handle;
-	u32 chunkSize;
-
-	chunkSize = 0x4000 * 4;
-
-	u32 totalSize = 0x2000000;
-	u32 offset = fromOffset;
-
-	handle = dfopen(file_name,"wb");
-	dfseek(handle,0,SEEK_SET);
-
-	while(offset<(fromOffset+totalSize)) {
-		readRomToFile32(handle,offset,chunkSize);
-		offset+=chunkSize;
-	}
-
-	dfclose(handle);
 }
 
 void readSkipsFromFile(u32* skips)
@@ -215,7 +194,7 @@ void readSkipsFromFile(u32* skips)
 	}
 }
 
-void testDump32Yj(u32 fromOffset)
+void testDump32Yj()
 {
 	int handle;
 	u32 chunkSize;
@@ -223,7 +202,7 @@ void testDump32Yj(u32 fromOffset)
 	chunkSize = 0x4000 * 4;
 
 	u32 totalSize = 0x2000000;
-	u32 offset = fromOffset;
+	u32 offset = 0;
 
 	handle = dfopen(file_name,"wb");
 	dfseek(handle,0,SEEK_SET);
@@ -243,11 +222,6 @@ void testDump32Yj(u32 fromOffset)
 	}
 
 	dfclose(handle);
-}
-
-void experimentalDump()
-{
-	testDump32Yj(0);
 }
 
 void printRomName()
@@ -318,7 +292,7 @@ int main(void)
 
 	if ( keyInput.gbaKeys == KEY_B || keyInput.keyboardKey == 'V' || keyInput.keyboardKey == 'v' ) {
 		PRINT("Let's VF DUMP\n");
-		romdump(true,false);
+		romdump(true);
 	} else if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'L' || keyInput.keyboardKey == 'l') {
 		PRINT("Let's GET VALUE REORDERING\n");
 		findVfValueReordering();
@@ -327,10 +301,10 @@ int main(void)
 		findVfAddressReordering();
 	} else if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'D' || keyInput.keyboardKey == 'd')  {
 		PRINT("Let's NORMAL DUMP\n");
-		romdump(false,false);
+		romdump(false);
 	} else if (keyInput.gbaKeys == KEY_RIGHT || keyInput.keyboardKey == 'Y' || keyInput.keyboardKey == 'y')  {
 		PRINT("Let's YJ DUMP\n");
-		experimentalDump();
+		testDump32Yj();
 	}
 
 	PRINT("\nDone\n");
