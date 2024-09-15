@@ -152,6 +152,18 @@ struct bothKeys waitForKey()
 	return keyInput;
 }
 
+void readSkipsFromFile(u32* skips)
+{
+	int handle = dfopen("skips.bin","rb");
+	dfseek(handle,0,SEEK_SET);
+	dfread(skips,4,18,handle);
+	dfclose(handle);
+	for(int x=0;x<18;x++) {
+		// swap endianness
+		skips[x] = ((skips[x]>>24)&0xff) | ((skips[x]<<8)&0xff0000) | ((skips[x]>>8)&0xff00) | ((skips[x]<<24)&0xff000000);
+	}
+}
+
 void romdump(bool vfame, bool yj)
 {
 	int handle;
@@ -197,18 +209,6 @@ void startGame()
 {
 	u32 address=0x8000000;
 	((void (*)(void))address)();
-}
-
-void readSkipsFromFile(u32* skips)
-{
-	int handle = dfopen("skips.bin","rb");
-	dfseek(handle,0,SEEK_SET);
-	dfread(skips,4,18,handle);
-	dfclose(handle);
-	for(int x=0;x<18;x++) {
-		// swap endianness
-		skips[x] = ((skips[x]>>24)&0xff) | ((skips[x]<<8)&0xff0000) | ((skips[x]>>8)&0xff00) | ((skips[x]<<24)&0xff000000);
-	}
 }
 
 void printRomName()
