@@ -42,17 +42,11 @@ dumping YJencrypted games, as reading the header may trip their protection. "Sta
 After this, the main menu will appear.
 
 Supported actions:
-* **Normal dump** - dump inserted cartridge as a standard GBA ROM (will always dump max 32mb)
-* **VF dump** - dump game with Vast Fame protection
-* **YJencrypted dump** - dump game with YJencrypted protection, see below
-* **Get value reordering** - determine SRAM address scrambling (for emulation, can differ between games)
-* **Get address reordering** - determine SRAM value scrambling (for emulation, can differ between games)
-
-### YJencrypted dumping
-
-YJencrypted cartridges use heavy read protection which cannot be easily circumvented by software alone. The YJencrypted
-dumping mode in this program is designed to be used as part of a process which will be documented at some point
-hopefully
+* **Dump normal ROM** - dump inserted cartridge as a standard GBA ROM (will always dump max 32mb)
+* **Dump VF ROM** - dump game with Vast Fame protection
+* **Dump YJencrypted** - dump game with YJencrypted protection, see separate file **YJDumping.md**
+* **Get value reordering** - determine Vast Fame SRAM address scrambling (for emulation, can differ between games)
+* **Get address reordering** - determine Vast Fame SRAM value scrambling (for emulation, can differ between games)
 
 Development
 -----------
