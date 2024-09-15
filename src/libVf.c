@@ -5,7 +5,6 @@
 
 volatile u8 *sram= (u8*) 0x0E000000;
 volatile u8 *rom= (u8*) 0x08000000;
-volatile u16 *rom16= (u16*) 0x08000000;
 volatile u32 *rom32= (u32*) 0x08000000;
 
 void startModeChange(void)
@@ -121,13 +120,4 @@ u32 DumpRom32Yj(u32* data, u32 startingOffset, u32 memSize, const u32 skips[16],
 		}
 	}
 	return 0;
-}
-
-void DumpRom16(u16* data, u32 startingOffset, u32 memSize)
-{
-	startingOffset /= 2;
-	memSize /= 2;
-	for (u32 x = 0; x < memSize; ++x){
-		data[x] = rom16[x+startingOffset];
-	}
 }

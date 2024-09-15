@@ -18,7 +18,6 @@
 #include "libText.h"
 
 u8 save_data[0x20000] __attribute__ ((section (".sbss")));
-//u16 save_data16[0x2000] __attribute__ ((section (".sbss"))); // crashes? too much mem usage?
 u32 save_data32[0x4000] __attribute__ ((section (".sbss")));
 const char file_name[] = {"GBA_Cart.bin"};
 
@@ -173,49 +172,6 @@ void romdump(bool vfame,bool wholeCartArea)
 		readRomToFile(handle,offset,chunkSize);
 		offset+=chunkSize;
 	}
-
-	dfclose(handle);
-}
-
-void simulateBiosReads()
-{
-	// Simulate reads done by GBA BIOS.
-
-	int handle;
-
-	const char temp_file_name[] = {"bootreads.bin"};
-
-	handle = dfopen(temp_file_name,"wb");
-	dfseek(handle,0,SEEK_SET);
-
-	readRomToFile(handle,0xB7,1);
-	readRomToFile(handle,0xB6,1);
-	readRomToFile(handle,0xB5,1);
-	readRomToFile(handle,0xB4,1);
-
-	int baseOffset = 0xBFFFFE0 - 0x800000;
-	for(int x=0;x<=0x12;x+=2) {
-		readRomToFile(handle,baseOffset+x+1,1);
-		readRomToFile(handle,baseOffset+x,1);
-	}
-
-	readRomToFile(handle,0x9D,1);
-	readRomToFile(handle,0x9E,1);
-	readRomToFile(handle,0x9F,1);
-	readRomToFile(handle,0xB0,1);
-	readRomToFile(handle,0xB1,1);
-	readRomToFile(handle,0xB2,1);
-	readRomToFile(handle,0xB3,1);
-	readRomToFile(handle,0xB4,1);
-	readRomToFile(handle,0xB5,1);
-	readRomToFile(handle,0xB6,1);
-	readRomToFile(handle,0xB7,1);
-
-	readRomToFile(handle,0x9E,1);
-
-	// Then it tries to load the logo
-
-	readRomToFile(handle,0x04,1);
 
 	dfclose(handle);
 }
