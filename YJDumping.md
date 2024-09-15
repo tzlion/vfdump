@@ -12,12 +12,14 @@ dumping mode in VFDump is designed to be used as part of a process as follows:
     * If the Nintendo logo appears normally, it may mean the cartridge was not protected, OR it may mean power was lost
       to the cartridge in step 2. You can find out which by trying to dump it.
     * If the Nintendo logo appears BLANK, this means the protection tripped while reading the header.
-      See section "circumventing header protection"
+      See section "Circumventing header protection"
 4. Select the "skip" option and then "Dump YJencrypted", it will begin to dump.
     * If your cartridge is one of the weaker protected ones, the dump will complete, no further action needed.
     * If your cartridge has the stronger protection, at some point the message "Protection trip" will appear.
       This means you've hit a "trap address" which will lock out the cartridge from further reads.
-      TBCTBC on dealing with this
+      See the section "Skipping trap addresses" for how to deal with this.
+
+TODO What you need to do to restore the header section and make it boot
 
 Skipping trap addresses
 -----------------------
@@ -25,10 +27,49 @@ Skipping trap addresses
 YJencrypted carts with stronger protection have "trap addresses" which will lock the cartridge from further reading if
 they are read after it has been initially unlocked by the boot sequence. These differ per cartridge so can't be 
 pre-empted, you will need to determine them yourself as part of the dumping process. Typically a cartridge may have
-X number of trap addresses and then a larger trap "block" where any read within it will trip the protection.
+about 12 trap addresses and then a larger trap "block" of about 1000-2000 bytes where any read within it will trip the
+protection.
 
 VFDump in YJ dumping mode will display a message "Protection trip XXXXXXXX" when it hits a trap address, where XXXXXXXX
-is the actual address. Now you need to skip the address. skips.bin ... tbc
+is the 32-bit trap address found. Now you need to make it skip that address the next time it dumps the game. To do that,
+use a hex editor to enter the address into skips.bin, a 72-byte binary file which is provided in the repository, or you
+can create it yourself.
+
+An "empty" skips.bin looks like this (# are comments)
+
+```
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF # 16 possible skip addresses
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF                   # Start and end addresses of skip block (Start is inclusive and end is exclusive)
+```
+
+So if you populate it like this
+
+```
+00001234 0090A0B0 FFFFFFFF FFFFFFFF # Will skip individual 32-bit addresses 00001234 and 0090A0B0
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+FFFFFFFF FFFFFFFF FFFFFFFF FFFFFFFF
+00102000 0010C000                   # Will skip all addresses between 00102000-0010BFFF
+```
+
+Every time you find a new trap address and add it to skips.bin, you will have to fully power off the GBA and start the 
+dumping process again from step 1. If you find multiple consecutive trap addresses, it is likely you've found the start
+of the "trap block" and can use some trial and error to find the end of it. So to fully populate skips.bin you might
+need ~20 cycles of the whole process (and if there is a trap address in the Nintendo logo, you will need to repeat the
+process below every time as well).
+
+Once skips.bin is populated with every trap address/block in the cartridge, the dump should be able to complete to the
+end.
+
+VFDump will replace any skipped data in the dumped ROM with the string "SKIP" in ASCII. Generally the skipped data is
+repeated elsewhere in the ROM, so you should be able to infer what it should be, using a hex editor, by searching for
+other locations of the same data before and after it, and then patch in the missing data from the other location in
+order to recreate what the original ROM should have looked like. Note that ROMs dumped and recreated through this
+process should not be treated as 100% confirmed dumps due to the necessity of inferring unreadable data like this.
+TODO this is badly written
 
 Circumventing header protection
 -------------------------------
