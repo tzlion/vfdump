@@ -152,7 +152,7 @@ struct bothKeys waitForKey()
 	return keyInput;
 }
 
-void romdump(bool vfame)
+void romdump(bool vfame, bool yj)
 {
 	int handle;
 	u32 chunkSize;
@@ -168,9 +168,26 @@ void romdump(bool vfame)
 	if (vfame) {
 		DoVfRomInit();
 	}
-	while(offset<totalSize) {
-		readRomToFile32(handle,offset,chunkSize);
-		offset+=chunkSize;
+
+	if (yj) {
+		u32 result;
+
+		u32 skips[18];
+		readSkipsFromFile(skips);
+		// last 2 values in the file are actually the boundaries of the big skippy areas
+
+		while(offset<totalSize) {
+			result = readRomToFile32Yj(handle, offset, chunkSize, skips, skips[16], skips[17]);
+			if ( result != 0 ) {
+				break;
+			}
+			offset+=chunkSize;
+		}
+	} else {
+		while(offset<totalSize) {
+			readRomToFile32(handle,offset,chunkSize);
+			offset+=chunkSize;
+		}
 	}
 
 	dfclose(handle);
@@ -192,36 +209,6 @@ void readSkipsFromFile(u32* skips)
 		// swap endianness
 		skips[x] = ((skips[x]>>24)&0xff) | ((skips[x]<<8)&0xff0000) | ((skips[x]>>8)&0xff00) | ((skips[x]<<24)&0xff000000);
 	}
-}
-
-void testDump32Yj()
-{
-	int handle;
-	u32 chunkSize;
-
-	chunkSize = 0x4000 * 4;
-
-	u32 totalSize = 0x2000000;
-	u32 offset = 0;
-
-	handle = dfopen(file_name,"wb");
-	dfseek(handle,0,SEEK_SET);
-
-	u32 result;
-
-	u32 skips[18];
-	readSkipsFromFile(skips);
-	// last 2 values in the file are actually the boundaries of the big skippy areas
-
-	while(offset<totalSize) {
-		result = readRomToFile32Yj(handle, offset, chunkSize, skips, skips[16], skips[17]);
-		if ( result != 0 ) {
-			break;
-		}
-		offset+=chunkSize;
-	}
-
-	dfclose(handle);
 }
 
 void printRomName()
@@ -292,7 +279,7 @@ int main(void)
 
 	if ( keyInput.gbaKeys == KEY_B || keyInput.keyboardKey == 'V' || keyInput.keyboardKey == 'v' ) {
 		PRINT("Let's VF DUMP\n");
-		romdump(true);
+		romdump(true, false);
 	} else if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'L' || keyInput.keyboardKey == 'l') {
 		PRINT("Let's GET VALUE REORDERING\n");
 		findVfValueReordering();
@@ -301,10 +288,10 @@ int main(void)
 		findVfAddressReordering();
 	} else if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'D' || keyInput.keyboardKey == 'd')  {
 		PRINT("Let's NORMAL DUMP\n");
-		romdump(false);
+		romdump(false, false);
 	} else if (keyInput.gbaKeys == KEY_RIGHT || keyInput.keyboardKey == 'Y' || keyInput.keyboardKey == 'y')  {
 		PRINT("Let's YJ DUMP\n");
-		testDump32Yj();
+		romdump(false, true);
 	}
 
 	PRINT("\nDone\n");
