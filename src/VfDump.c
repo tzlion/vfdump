@@ -34,354 +34,354 @@ u16 *vid_mem= ((u16*)0x06000000);
 
 struct bothKeys
 {
-    u16 gbaKeys;
-    char keyboardKey;
+	u16 gbaKeys;
+	char keyboardKey;
 };
 
 void VblankInterrupt()
 {
-    frame += 1;
-    scanKeys();
+	frame += 1;
+	scanKeys();
 }
 
 void findVfAddressReordering()
 {
-    for (u8 mode=0x00;mode<0x4;mode++)  { // Modes go up to F validly but 0-3 contain all the unique address swaps
-        dprintf("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+4,mode+8,mode+12);
-        text_print("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+4,mode+8,mode+12);
-        u16 result;
-        u16 results[0xFFFF];
-        u16 currentWriteAddress = 0x0001;
-        for(int z=0;z<0x0F;z++){ // It never gets the F tho is that a problem // I think nah
-            BlankSram();
-            result = FigureOutDestinationLocationForWrite(mode,currentWriteAddress);
-            results[result] = z;
-            currentWriteAddress = currentWriteAddress << 1;
-        }
-        PRINT("0f ");
-        for(int ind = 0x4000;ind>0;ind/=2){
-          dprintf("%02x ",results[ind]);
-          text_print("%02x ",results[ind]);
-        }
-        PRINT("\n");
-    }
+	for (u8 mode=0x00;mode<0x4;mode++)  { // Modes go up to F validly but 0-3 contain all the unique address swaps
+		dprintf("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+4,mode+8,mode+12);
+		text_print("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+4,mode+8,mode+12);
+		u16 result;
+		u16 results[0xFFFF];
+		u16 currentWriteAddress = 0x0001;
+		for(int z=0;z<0x0F;z++){ // It never gets the F tho is that a problem // I think nah
+			BlankSram();
+			result = FigureOutDestinationLocationForWrite(mode,currentWriteAddress);
+			results[result] = z;
+			currentWriteAddress = currentWriteAddress << 1;
+		}
+		PRINT("0f ");
+		for(int ind = 0x4000;ind>0;ind/=2){
+		  dprintf("%02x ",results[ind]);
+		  text_print("%02x ",results[ind]);
+		}
+		PRINT("\n");
+	}
 }
 
 void findVfValueReordering()
 {
-    for (u8 mode=0x00;mode<0x10;mode+=4)  { // Modes 0,4,8,C should have the regular addressing
-        dprintf("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+1,mode+2,mode+3);
-        text_print("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+1,mode+2,mode+3);
-        int result;
-        int results[0xFF];
-        DoVfSramInit(mode);
-        int writeValue=1;
-        for(int z=0;z<8;z++){
-            BlankSram();
-            result=DoSramWriteAndRead(0x6969,writeValue,0x6969);
-            results[result] = z;
-            writeValue *= 2;
-        }
-        for(int ind = 0x80;ind>0;ind/=2){
-          dprintf("%02x ",results[ind]);
-          text_print("%02x ",results[ind]);
-        }
-        PRINT("\n");
-    }
+	for (u8 mode=0x00;mode<0x10;mode+=4)  { // Modes 0,4,8,C should have the regular addressing
+		dprintf("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+1,mode+2,mode+3);
+		text_print("\n= MODE %02x/%02x/%02x/%02x =\n",mode,mode+1,mode+2,mode+3);
+		int result;
+		int results[0xFF];
+		DoVfSramInit(mode);
+		int writeValue=1;
+		for(int z=0;z<8;z++){
+			BlankSram();
+			result=DoSramWriteAndRead(0x6969,writeValue,0x6969);
+			results[result] = z;
+			writeValue *= 2;
+		}
+		for(int ind = 0x80;ind>0;ind/=2){
+		  dprintf("%02x ",results[ind]);
+		  text_print("%02x ",results[ind]);
+		}
+		PRINT("\n");
+	}
 }
 
 void readSramToFile(int handle)
 {
-    u32 memSize = 0x10000;
-    dprintf("Getting chunk of 0x10000 from sram...\n");
-    text_print("Read 0x10000 from sram\n");
-    DumpSram(save_data);
-    dfwrite(save_data,1,memSize,handle);
+	u32 memSize = 0x10000;
+	dprintf("Getting chunk of 0x10000 from sram...\n");
+	text_print("Read 0x10000 from sram\n");
+	DumpSram(save_data);
+	dfwrite(save_data,1,memSize,handle);
 }
 
 void readRomToFile(int handle,u32 offset,u32 chunkSize)
 {
-    dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
-    text_print("Read %08X from %08X\n",chunkSize,offset);
-    DumpRom(save_data,offset,chunkSize);
-    dfwrite(save_data,1,chunkSize,handle);
+	dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
+	text_print("Read %08X from %08X\n",chunkSize,offset);
+	DumpRom(save_data,offset,chunkSize);
+	dfwrite(save_data,1,chunkSize,handle);
 }
 
 
 void readRomToFile32(int handle,u32 offset,u32 chunkSize)
 {
-    dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
-    text_print("Read %08X from %08X\n",chunkSize,offset);
-    DumpRom32(save_data32,offset,chunkSize);
-    dfwrite(save_data32,1,chunkSize,handle);
+	dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
+	text_print("Read %08X from %08X\n",chunkSize,offset);
+	DumpRom32(save_data32,offset,chunkSize);
+	dfwrite(save_data32,1,chunkSize,handle);
 }
 
 u32 readRomToFile32Yj(int handle, u32 offset, u32 chunkSize, u32* skips, u32 skipBlockStart, u32 skipBlockEnd)
 {
-    dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
-    text_print("Read %08X from %08X\n",chunkSize,offset);
-    u32 result = DumpRom32Yj(save_data32, offset, chunkSize, skips, skipBlockStart, skipBlockEnd);
-    dfwrite(save_data32,1,chunkSize,handle);
-    if ( result != 0 ) {
-        text_print("Protection trip %08x\n",result);
-        dprintf("Protection trip %08x\n",result);
-    }
-    return result;
+	dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
+	text_print("Read %08X from %08X\n",chunkSize,offset);
+	u32 result = DumpRom32Yj(save_data32, offset, chunkSize, skips, skipBlockStart, skipBlockEnd);
+	dfwrite(save_data32,1,chunkSize,handle);
+	if ( result != 0 ) {
+		text_print("Protection trip %08x\n",result);
+		dprintf("Protection trip %08x\n",result);
+	}
+	return result;
 }
 
 struct bothKeys readKeys()
 {
-    struct bothKeys keyInput;
-    VBlankIntrWait();
-    keyInput.gbaKeys = keysDown();
-    keyInput.keyboardKey = dgetch();
-    return keyInput;
+	struct bothKeys keyInput;
+	VBlankIntrWait();
+	keyInput.gbaKeys = keysDown();
+	keyInput.keyboardKey = dgetch();
+	return keyInput;
 }
 
 struct bothKeys waitForKey()
 {
-    irqEnable(IRQ_VBLANK); // Enable Vblank interrupt to allow VblankIntrWait
-    REG_IME = 1; // Allow interrupts
-    struct bothKeys keyInput;
-    keyInput.gbaKeys = 0;
-    keyInput.keyboardKey = 0;
-    do {
-        keyInput = readKeys();
-    } while ( keyInput.gbaKeys == 0 && keyInput.keyboardKey == 0 );
-    irqDisable(IRQ_VBLANK); // Disable interrupts
-    REG_IME = 0;
-    return keyInput;
+	irqEnable(IRQ_VBLANK); // Enable Vblank interrupt to allow VblankIntrWait
+	REG_IME = 1; // Allow interrupts
+	struct bothKeys keyInput;
+	keyInput.gbaKeys = 0;
+	keyInput.keyboardKey = 0;
+	do {
+		keyInput = readKeys();
+	} while ( keyInput.gbaKeys == 0 && keyInput.keyboardKey == 0 );
+	irqDisable(IRQ_VBLANK); // Disable interrupts
+	REG_IME = 0;
+	return keyInput;
 }
 
 void romdump(bool vfame,bool wholeCartArea)
 {
-    int handle;
-    u32 chunkSize;
+	int handle;
+	u32 chunkSize;
 
-    chunkSize = 0x8000;
+	chunkSize = 0x8000;
 
-    u32 totalSize = wholeCartArea ? 0x8000000 : 0x2000000;
-    u32 offset = 0;
+	u32 totalSize = wholeCartArea ? 0x8000000 : 0x2000000;
+	u32 offset = 0;
 
-    handle = dfopen(file_name,"wb");
-    dfseek(handle,0,SEEK_SET);
+	handle = dfopen(file_name,"wb");
+	dfseek(handle,0,SEEK_SET);
 
-    if (vfame) {
-        DoVfRomInit();
-    }
-    while(offset<totalSize) {
-        readRomToFile(handle,offset,chunkSize);
-        offset+=chunkSize;
-    }
+	if (vfame) {
+		DoVfRomInit();
+	}
+	while(offset<totalSize) {
+		readRomToFile(handle,offset,chunkSize);
+		offset+=chunkSize;
+	}
 
-    dfclose(handle);
+	dfclose(handle);
 }
 
 void simulateBiosReads()
 {
-    // Simulate reads done by GBA BIOS.
+	// Simulate reads done by GBA BIOS.
 
-    int handle;
+	int handle;
 
-    const char temp_file_name[] = {"bootreads.bin"};
+	const char temp_file_name[] = {"bootreads.bin"};
 
-    handle = dfopen(temp_file_name,"wb");
-    dfseek(handle,0,SEEK_SET);
+	handle = dfopen(temp_file_name,"wb");
+	dfseek(handle,0,SEEK_SET);
 
-    readRomToFile(handle,0xB7,1);
-    readRomToFile(handle,0xB6,1);
-    readRomToFile(handle,0xB5,1);
-    readRomToFile(handle,0xB4,1);
+	readRomToFile(handle,0xB7,1);
+	readRomToFile(handle,0xB6,1);
+	readRomToFile(handle,0xB5,1);
+	readRomToFile(handle,0xB4,1);
 
-    int baseOffset = 0xBFFFFE0 - 0x800000;
-    for(int x=0;x<=0x12;x+=2) {
-        readRomToFile(handle,baseOffset+x+1,1);
-        readRomToFile(handle,baseOffset+x,1);
-    }
+	int baseOffset = 0xBFFFFE0 - 0x800000;
+	for(int x=0;x<=0x12;x+=2) {
+		readRomToFile(handle,baseOffset+x+1,1);
+		readRomToFile(handle,baseOffset+x,1);
+	}
 
-    readRomToFile(handle,0x9D,1);
-    readRomToFile(handle,0x9E,1);
-    readRomToFile(handle,0x9F,1);
-    readRomToFile(handle,0xB0,1);
-    readRomToFile(handle,0xB1,1);
-    readRomToFile(handle,0xB2,1);
-    readRomToFile(handle,0xB3,1);
-    readRomToFile(handle,0xB4,1);
-    readRomToFile(handle,0xB5,1);
-    readRomToFile(handle,0xB6,1);
-    readRomToFile(handle,0xB7,1);
+	readRomToFile(handle,0x9D,1);
+	readRomToFile(handle,0x9E,1);
+	readRomToFile(handle,0x9F,1);
+	readRomToFile(handle,0xB0,1);
+	readRomToFile(handle,0xB1,1);
+	readRomToFile(handle,0xB2,1);
+	readRomToFile(handle,0xB3,1);
+	readRomToFile(handle,0xB4,1);
+	readRomToFile(handle,0xB5,1);
+	readRomToFile(handle,0xB6,1);
+	readRomToFile(handle,0xB7,1);
 
-    readRomToFile(handle,0x9E,1);
+	readRomToFile(handle,0x9E,1);
 
-    // Then it tries to load the logo
+	// Then it tries to load the logo
 
-    readRomToFile(handle,0x04,1);
+	readRomToFile(handle,0x04,1);
 
-    dfclose(handle);
+	dfclose(handle);
 }
 
 void startGame()
 {
-    u32 address=0x8000000;
-    ((void (*)(void))address)();
+	u32 address=0x8000000;
+	((void (*)(void))address)();
 }
 
 void testDump32(u32 fromOffset)
 {
-    int handle;
-    u32 chunkSize;
+	int handle;
+	u32 chunkSize;
 
-    chunkSize = 0x4000 * 4;
+	chunkSize = 0x4000 * 4;
 
-    u32 totalSize = 0x2000000;
-    u32 offset = fromOffset;
+	u32 totalSize = 0x2000000;
+	u32 offset = fromOffset;
 
-    handle = dfopen(file_name,"wb");
-    dfseek(handle,0,SEEK_SET);
+	handle = dfopen(file_name,"wb");
+	dfseek(handle,0,SEEK_SET);
 
-    while(offset<(fromOffset+totalSize)) {
-        readRomToFile32(handle,offset,chunkSize);
-        offset+=chunkSize;
-    }
+	while(offset<(fromOffset+totalSize)) {
+		readRomToFile32(handle,offset,chunkSize);
+		offset+=chunkSize;
+	}
 
-    dfclose(handle);
+	dfclose(handle);
 }
 
 void readSkipsFromFile(u32* skips)
 {
-    int handle = dfopen("skips.bin","rb");
-    dfseek(handle,0,SEEK_SET);
-    dfread(skips,4,18,handle);
-    dfclose(handle);
-    for(int x=0;x<18;x++) {
-        // swap endianness
-        skips[x] = ((skips[x]>>24)&0xff) | ((skips[x]<<8)&0xff0000) | ((skips[x]>>8)&0xff00) | ((skips[x]<<24)&0xff000000);
-    }
+	int handle = dfopen("skips.bin","rb");
+	dfseek(handle,0,SEEK_SET);
+	dfread(skips,4,18,handle);
+	dfclose(handle);
+	for(int x=0;x<18;x++) {
+		// swap endianness
+		skips[x] = ((skips[x]>>24)&0xff) | ((skips[x]<<8)&0xff0000) | ((skips[x]>>8)&0xff00) | ((skips[x]<<24)&0xff000000);
+	}
 }
 
 void testDump32Yj(u32 fromOffset)
 {
-    int handle;
-    u32 chunkSize;
+	int handle;
+	u32 chunkSize;
 
-    chunkSize = 0x4000 * 4;
+	chunkSize = 0x4000 * 4;
 
-    u32 totalSize = 0x2000000;
-    u32 offset = fromOffset;
+	u32 totalSize = 0x2000000;
+	u32 offset = fromOffset;
 
-    handle = dfopen(file_name,"wb");
-    dfseek(handle,0,SEEK_SET);
+	handle = dfopen(file_name,"wb");
+	dfseek(handle,0,SEEK_SET);
 
-    u32 result;
+	u32 result;
 
-    u32 skips[18];
-    readSkipsFromFile(skips);
-    // last 2 values in the file are actually the boundaries of the big skippy areas
+	u32 skips[18];
+	readSkipsFromFile(skips);
+	// last 2 values in the file are actually the boundaries of the big skippy areas
 
-    while(offset<totalSize) {
-        result = readRomToFile32Yj(handle, offset, chunkSize, skips, skips[16], skips[17]);
-        if ( result != 0 ) {
-            break;
-        }
-        offset+=chunkSize;
-    }
+	while(offset<totalSize) {
+		result = readRomToFile32Yj(handle, offset, chunkSize, skips, skips[16], skips[17]);
+		if ( result != 0 ) {
+			break;
+		}
+		offset+=chunkSize;
+	}
 
-    dfclose(handle);
+	dfclose(handle);
 }
 
 void experimentalDump()
 {
-    testDump32Yj(0);
+	testDump32Yj(0);
 }
 
 void printRomName()
 {
-    u32 x;
-    PRINT("\n");
-    PRINT("NAME: ");
-    for (x = 0; x < 12; x++){
-        PUTCHAR(pak_ROM[160 + x]);
-    }
+	u32 x;
+	PRINT("\n");
+	PRINT("NAME: ");
+	for (x = 0; x < 12; x++){
+		PUTCHAR(pak_ROM[160 + x]);
+	}
 
 }
 
 int main(void)
 {
-    struct bothKeys keyInput;
+	struct bothKeys keyInput;
 
-    // Set up the interrupt handlers
-    irqInit();
+	// Set up the interrupt handlers
+	irqInit();
 
-    irqSet( IRQ_VBLANK, VblankInterrupt);
+	irqSet( IRQ_VBLANK, VblankInterrupt);
 
-    xcomms_init();
-    text_init();
+	xcomms_init();
+	text_init();
 
-    text_print("Press A to read header\n");
-    text_print("Press B to skip\n");
-    text_print("Press START to start game\n");
-    dprintf("Press Y to read header\n");
-    dprintf("Press N to skip\n");
-    dprintf("Press S to start game\n");
+	text_print("Press A to read header\n");
+	text_print("Press B to skip\n");
+	text_print("Press START to start game\n");
+	dprintf("Press Y to read header\n");
+	dprintf("Press N to skip\n");
+	dprintf("Press S to start game\n");
 
-    do {
-        keyInput = waitForKey();
-    } while ( (keyInput.gbaKeys != (KEY_A)) && (keyInput.keyboardKey !='Y') && (keyInput.keyboardKey !='y') &&
-              (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='S') && (keyInput.keyboardKey !='s') &&
-              (keyInput.gbaKeys != (KEY_B)) && (keyInput.keyboardKey !='N') && (keyInput.keyboardKey !='n'));
+	do {
+		keyInput = waitForKey();
+	} while ( (keyInput.gbaKeys != (KEY_A)) && (keyInput.keyboardKey !='Y') && (keyInput.keyboardKey !='y') &&
+			  (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='S') && (keyInput.keyboardKey !='s') &&
+			  (keyInput.gbaKeys != (KEY_B)) && (keyInput.keyboardKey !='N') && (keyInput.keyboardKey !='n'));
 
-    if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'S' || keyInput.keyboardKey == 's')  {
-        startGame();
-    }
-    if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'Y' || keyInput.keyboardKey == 'y')  {
-        printRomName();
-    }
-    PRINT("\n\n");
+	if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'S' || keyInput.keyboardKey == 's')  {
+		startGame();
+	}
+	if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'Y' || keyInput.keyboardKey == 'y')  {
+		printRomName();
+	}
+	PRINT("\n\n");
 
-    text_print("Press A to dump normal ROM\n");
-    text_print("Press B to dump VF ROM\n");
-    text_print("RIGHT to dump YJencrypted\n");
-    text_print("START to get value reordering\n");
-    text_print("SELECT to get addr reordering\n");
-    text_print("\n*SEL/START will erase save!*\n");
-    dprintf("Press D to dump normal ROM\n");
-    dprintf("Press V to dump VF ROM\n");
-    dprintf("Press Y to dump YJencrypted\n");
-    dprintf("Press L to get value reordering\n");
-    dprintf("Press S to get address reordering\n");
-    dprintf("\n* L/S will erase your save data!\n");
-    PRINT("\n");
+	text_print("Press A to dump normal ROM\n");
+	text_print("Press B to dump VF ROM\n");
+	text_print("RIGHT to dump YJencrypted\n");
+	text_print("START to get value reordering\n");
+	text_print("SELECT to get addr reordering\n");
+	text_print("\n*SEL/START will erase save!*\n");
+	dprintf("Press D to dump normal ROM\n");
+	dprintf("Press V to dump VF ROM\n");
+	dprintf("Press Y to dump YJencrypted\n");
+	dprintf("Press L to get value reordering\n");
+	dprintf("Press S to get address reordering\n");
+	dprintf("\n* L/S will erase your save data!\n");
+	PRINT("\n");
 
-    do {
-        keyInput = waitForKey();
-    } while ( (keyInput.gbaKeys != (KEY_A)) && (keyInput.keyboardKey !='D') && (keyInput.keyboardKey !='d') &&
-              (keyInput.gbaKeys != (KEY_B)) && (keyInput.keyboardKey !='V') && (keyInput.keyboardKey !='v')  &&
-              (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='L') && (keyInput.keyboardKey !='l') &&
-              (keyInput.gbaKeys != (KEY_SELECT)) && (keyInput.keyboardKey !='S') && (keyInput.keyboardKey !='s') &&
-              (keyInput.gbaKeys != (KEY_RIGHT)) && (keyInput.keyboardKey !='Y') && (keyInput.keyboardKey !='y') );
+	do {
+		keyInput = waitForKey();
+	} while ( (keyInput.gbaKeys != (KEY_A)) && (keyInput.keyboardKey !='D') && (keyInput.keyboardKey !='d') &&
+			  (keyInput.gbaKeys != (KEY_B)) && (keyInput.keyboardKey !='V') && (keyInput.keyboardKey !='v')  &&
+			  (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='L') && (keyInput.keyboardKey !='l') &&
+			  (keyInput.gbaKeys != (KEY_SELECT)) && (keyInput.keyboardKey !='S') && (keyInput.keyboardKey !='s') &&
+			  (keyInput.gbaKeys != (KEY_RIGHT)) && (keyInput.keyboardKey !='Y') && (keyInput.keyboardKey !='y') );
 
-    if ( keyInput.gbaKeys == KEY_B || keyInput.keyboardKey == 'V' || keyInput.keyboardKey == 'v' ) {
-        PRINT("Let's VF DUMP\n");
-        romdump(true,false);
-    } else if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'L' || keyInput.keyboardKey == 'l') {
-        PRINT("Let's GET VALUE REORDERING\n");
-        findVfValueReordering();
-    } else if (keyInput.gbaKeys == KEY_SELECT || keyInput.keyboardKey == 'S' || keyInput.keyboardKey == 's') {
-        PRINT("Let's GET ADDRESS REORDERING\n");
-        findVfAddressReordering();
-    } else if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'D' || keyInput.keyboardKey == 'd')  {
-        PRINT("Let's NORMAL DUMP\n");
-        romdump(false,false);
-    } else if (keyInput.gbaKeys == KEY_RIGHT || keyInput.keyboardKey == 'Y' || keyInput.keyboardKey == 'y')  {
-        PRINT("Let's YJ DUMP\n");
-        experimentalDump();
-    }
+	if ( keyInput.gbaKeys == KEY_B || keyInput.keyboardKey == 'V' || keyInput.keyboardKey == 'v' ) {
+		PRINT("Let's VF DUMP\n");
+		romdump(true,false);
+	} else if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'L' || keyInput.keyboardKey == 'l') {
+		PRINT("Let's GET VALUE REORDERING\n");
+		findVfValueReordering();
+	} else if (keyInput.gbaKeys == KEY_SELECT || keyInput.keyboardKey == 'S' || keyInput.keyboardKey == 's') {
+		PRINT("Let's GET ADDRESS REORDERING\n");
+		findVfAddressReordering();
+	} else if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'D' || keyInput.keyboardKey == 'd')  {
+		PRINT("Let's NORMAL DUMP\n");
+		romdump(false,false);
+	} else if (keyInput.gbaKeys == KEY_RIGHT || keyInput.keyboardKey == 'Y' || keyInput.keyboardKey == 'y')  {
+		PRINT("Let's YJ DUMP\n");
+		experimentalDump();
+	}
 
-    PRINT("\nDone\n");
-    PRINT("\nPress any key to reset GBA\n");
-    waitForKey();
+	PRINT("\nDone\n");
+	PRINT("\nPress any key to reset GBA\n");
+	waitForKey();
 
-    SystemCall(0x26); // reset!
+	SystemCall(0x26); // reset!
 
-    return (0);
+	return (0);
 }
