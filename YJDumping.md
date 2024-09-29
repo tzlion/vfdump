@@ -19,7 +19,15 @@ dumping mode in VFDump is designed to be used as part of a process as follows:
       This means you've hit a "trap address" which will lock out the cartridge from further reads.
       See the section "Skipping trap addresses" for how to deal with this.
 
-TODO What you need to do to restore the header section and make it boot
+After completing this process you should end up with a 32MB dump with many repeating blocks of data. This is definitely
+not how the ROM is stored on the cartridge (the actual ROM chip on board for Sintax games should be 4MB) but it is how
+the game expects to see it, so we can assume the protection also scrambles some of the upper address lines. So far I've
+not done any work around trying to restore the original ROM structure (which would also require emulating the address
+scrambling).
+
+However this dump still won't boot as-is on a GBA, as the first 6 bytes in the Nintendo logo, starting at 0x04h, are
+substituted for something else after the initial boot. (This is why you see the corrupted logo when rebooting the GBA).
+To restore it you can simply copy the 6 bytes from the same location in any normal GBA game ROM.
 
 Skipping trap addresses
 -----------------------
@@ -65,11 +73,10 @@ Once skips.bin is populated with every trap address/block in the cartridge, the 
 end.
 
 VFDump will replace any skipped data in the dumped ROM with the string "SKIP" in ASCII. Generally the skipped data is
-repeated elsewhere in the ROM, so you should be able to infer what it should be, using a hex editor, by searching for
-other locations of the same data before and after it, and then patch in the missing data from the other location in
-order to recreate what the original ROM should have looked like. Note that ROMs dumped and recreated through this
-process should not be treated as 100% confirmed dumps due to the necessity of inferring unreadable data like this.
-TODO this is badly written
+repeated elsewhere in the ROM, so you should be able to infer what it should be by using a hex editor to search for
+other locations of the preceding and following data, and then patch in the missing data from the other location. That
+way you can recreate what the original ROM theoretically would have looked like. However ROMs recreated through this
+process should not be treated as 100% confirmed accurate dumps.
 
 Circumventing header protection
 -------------------------------
