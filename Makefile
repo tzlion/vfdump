@@ -2,6 +2,12 @@
 .SUFFIXES:
 #---------------------------------------------------------------------------------
 
+# default devkitPro installation directory, change this if you have it somewhere else
+DEVKITPRO_BASE_DIR := $(HOME)/devkitPro
+ifeq ($(OS),Windows_NT)
+	DEVKITPRO_BASE_DIR := C:/devkitPro
+endif
+
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output, if this ends with _mb generates a multiboot image
 # BUILD is the directory where object files & intermediate files will be placed
@@ -38,13 +44,13 @@ LDFLAGS	=	$(ARCH) -Wl,-Map,$(notdir $@).map
 #---------------------------------------------------------------------------------
 # path to tools - this can be deleted if you set the path in your OS
 #---------------------------------------------------------------------------------
-export PATH := $(HOME)/devkitPro/devkitARM/bin/:$(PATH)
+export PATH := $(DEVKITPRO_BASE_DIR)/devkitARM/bin/:$(DEVKITPRO_BASE_DIR)/tools/bin/:$(PATH)
 
 #---------------------------------------------------------------------------------
 # absolute path required since this makefile uses the build directory
 # as the working directory
 #---------------------------------------------------------------------------------
-LIBGBA	:=	$(HOME)/devkitPro/libgba
+LIBGBA	:=	$(DEVKITPRO_BASE_DIR)/libgba
 
 #---------------------------------------------------------------------------------
 # the prefix on the compiler executables

@@ -18,6 +18,7 @@
 #include "libText.h"
 
 u8 save_data[0x20000] __attribute__ ((section (".sbss")));
+u32 save_data32[0x4000] __attribute__ ((section (".sbss")));
 const char file_name[] = {"GBA_Cart.bin"};
 
 #define PRINT(m) { dprintf(m); text_row(m);}
@@ -105,6 +106,28 @@ void readRomToFile(int handle,u32 offset,u32 chunkSize)
 	dfwrite(save_data,1,chunkSize,handle);
 }
 
+
+void readRomToFile32(int handle,u32 offset,u32 chunkSize)
+{
+	dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
+	text_print("Read %08X from %08X\n",chunkSize,offset);
+	DumpRom32(save_data32,offset,chunkSize);
+	dfwrite(save_data32,1,chunkSize,handle);
+}
+
+u32 readRomToFile32Yj(int handle, u32 offset, u32 chunkSize, u32* skips, u32 skipBlockStart, u32 skipBlockEnd)
+{
+	dprintf("Getting chunk of 0x%08X from offset 0x%08X...\n",chunkSize,offset);
+	text_print("Read %08X from %08X\n",chunkSize,offset);
+	u32 result = DumpRom32Yj(save_data32, offset, chunkSize, skips, skipBlockStart, skipBlockEnd);
+	dfwrite(save_data32,1,chunkSize,handle);
+	if ( result != 0 ) {
+		text_print("Protection trip %08x\n",result);
+		dprintf("Protection trip %08x\n",result);
+	}
+	return result;
+}
+
 struct bothKeys readKeys()
 {
 	struct bothKeys keyInput;
@@ -129,14 +152,26 @@ struct bothKeys waitForKey()
 	return keyInput;
 }
 
-void romdump(bool vfame,bool wholeCartArea)
+void readSkipsFromFile(u32* skips)
+{
+	int handle = dfopen("skips.bin","rb");
+	dfseek(handle,0,SEEK_SET);
+	dfread(skips,4,18,handle);
+	dfclose(handle);
+	for(int x=0;x<18;x++) {
+		// swap endianness
+		skips[x] = ((skips[x]>>24)&0xff) | ((skips[x]<<8)&0xff0000) | ((skips[x]>>8)&0xff00) | ((skips[x]<<24)&0xff000000);
+	}
+}
+
+void romdump(bool vfame, bool yj)
 {
 	int handle;
 	u32 chunkSize;
 
-	chunkSize = 0x8000;
+	chunkSize = 0x10000;
 
-	u32 totalSize = wholeCartArea ? 0x8000000 : 0x2000000;
+	u32 totalSize = 0x2000000;
 	u32 offset = 0;
 
 	handle = dfopen(file_name,"wb");
@@ -145,18 +180,50 @@ void romdump(bool vfame,bool wholeCartArea)
 	if (vfame) {
 		DoVfRomInit();
 	}
-	while(offset<totalSize) {
-		readRomToFile(handle,offset,chunkSize);
-		offset+=chunkSize;
+
+	if (yj) {
+		u32 result;
+
+		u32 skips[18];
+		readSkipsFromFile(skips);
+		// last 2 values in the file are actually the boundaries of the big skippy areas
+
+		while(offset<totalSize) {
+			result = readRomToFile32Yj(handle, offset, chunkSize, skips, skips[16], skips[17]);
+			if ( result != 0 ) {
+				break;
+			}
+			offset+=chunkSize;
+		}
+	} else {
+		while(offset<totalSize) {
+			readRomToFile32(handle,offset,chunkSize);
+			offset+=chunkSize;
+		}
 	}
 
 	dfclose(handle);
 }
 
-int main(void)
+void startGame()
+{
+	u32 address=0x8000000;
+	((void (*)(void))address)();
+}
+
+void printRomName()
 {
 	u32 x;
+	PRINT("\n");
+	PRINT("NAME: ");
+	for (x = 0; x < 12; x++){
+		PUTCHAR(pak_ROM[160 + x]);
+	}
 
+}
+
+int main(void)
+{
 	struct bothKeys keyInput;
 
 	// Set up the interrupt handlers
@@ -166,20 +233,37 @@ int main(void)
 
 	xcomms_init();
 	text_init();
-	PRINT("\n");
-	PRINT("NAME: ");
-	for (x = 0; x < 12; x++){
-		PUTCHAR(pak_ROM[160 + x]);
+
+	text_print("Press A to read header\n");
+	text_print("Press B to skip\n");
+	text_print("Press START to start game\n");
+	dprintf("Press Y to read header\n");
+	dprintf("Press N to skip\n");
+	dprintf("Press S to start game\n");
+
+	do {
+		keyInput = waitForKey();
+	} while ( (keyInput.gbaKeys != (KEY_A)) && (keyInput.keyboardKey !='Y') && (keyInput.keyboardKey !='y') &&
+			  (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='S') && (keyInput.keyboardKey !='s') &&
+			  (keyInput.gbaKeys != (KEY_B)) && (keyInput.keyboardKey !='N') && (keyInput.keyboardKey !='n'));
+
+	if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'S' || keyInput.keyboardKey == 's')  {
+		startGame();
+	}
+	if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'Y' || keyInput.keyboardKey == 'y')  {
+		printRomName();
 	}
 	PRINT("\n\n");
 
 	text_print("Press A to dump normal ROM\n");
 	text_print("Press B to dump VF ROM\n");
+	text_print("RIGHT to dump YJencrypted\n");
 	text_print("START to get value reordering\n");
 	text_print("SELECT to get addr reordering\n");
 	text_print("\n*SEL/START will erase save!*\n");
-	dprintf("Press D to dump ROM\n");
+	dprintf("Press D to dump normal ROM\n");
 	dprintf("Press V to dump VF ROM\n");
+	dprintf("Press Y to dump YJencrypted\n");
 	dprintf("Press R to get value reordering\n");
 	dprintf("Press S to get address reordering\n");
 	dprintf("\n* R/S will erase your save data!\n");
@@ -191,29 +275,26 @@ int main(void)
 			  (keyInput.gbaKeys != (KEY_B)) && (keyInput.keyboardKey !='V') && (keyInput.keyboardKey !='v')  &&
 			  (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='R') && (keyInput.keyboardKey !='r') &&
 			  (keyInput.gbaKeys != (KEY_SELECT)) && (keyInput.keyboardKey !='S') && (keyInput.keyboardKey !='s') &&
-			  (keyInput.gbaKeys != (KEY_DOWN)) && (keyInput.keyboardKey !='M') && (keyInput.keyboardKey !='m')  &&
-			  (keyInput.gbaKeys != (KEY_UP)) && (keyInput.keyboardKey !='T') && (keyInput.keyboardKey !='t') &&
-			  (keyInput.gbaKeys != (KEY_RIGHT)) && (keyInput.keyboardKey !='Q') && (keyInput.keyboardKey !='q') );
+			  (keyInput.gbaKeys != (KEY_RIGHT)) && (keyInput.keyboardKey !='Y') && (keyInput.keyboardKey !='y') );
 
 	if ( keyInput.gbaKeys == KEY_B || keyInput.keyboardKey == 'V' || keyInput.keyboardKey == 'v' ) {
 		PRINT("Let's VF DUMP\n");
-		romdump(true,false);
+		romdump(true, false);
 	} else if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'R' || keyInput.keyboardKey == 'r') {
 		PRINT("Let's GET VALUE REORDERING\n");
 		findVfValueReordering();
 	} else if (keyInput.gbaKeys == KEY_SELECT || keyInput.keyboardKey == 'S' || keyInput.keyboardKey == 's') {
 		PRINT("Let's GET ADDRESS REORDERING\n");
 		findVfAddressReordering();
-	} else if (keyInput.gbaKeys == KEY_DOWN || keyInput.keyboardKey == 'M' || keyInput.keyboardKey == 'm') {
-		PRINT("MEGA DUMP EVERYTHING\n");
-		romdump(false,true);
 	} else if (keyInput.gbaKeys == KEY_A || keyInput.keyboardKey == 'D' || keyInput.keyboardKey == 'd')  {
 		PRINT("Let's NORMAL DUMP\n");
-		romdump(false,false);
+		romdump(false, false);
+	} else if (keyInput.gbaKeys == KEY_RIGHT || keyInput.keyboardKey == 'Y' || keyInput.keyboardKey == 'y')  {
+		PRINT("Let's YJ DUMP\n");
+		romdump(false, true);
 	}
 
 	PRINT("\nDone\n");
-
 	PRINT("\nPress any key to reset GBA\n");
 	waitForKey();
 
