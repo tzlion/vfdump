@@ -264,23 +264,23 @@ int main(void)
 	dprintf("Press D to dump normal ROM\n");
 	dprintf("Press V to dump VF ROM\n");
 	dprintf("Press Y to dump YJencrypted\n");
-	dprintf("Press L to get value reordering\n");
+	dprintf("Press R to get value reordering\n");
 	dprintf("Press S to get address reordering\n");
-	dprintf("\n* L/S will erase your save data!\n");
+	dprintf("\n* R/S will erase your save data!\n");
 	PRINT("\n");
 
 	do {
 		keyInput = waitForKey();
 	} while ( (keyInput.gbaKeys != (KEY_A)) && (keyInput.keyboardKey !='D') && (keyInput.keyboardKey !='d') &&
 			  (keyInput.gbaKeys != (KEY_B)) && (keyInput.keyboardKey !='V') && (keyInput.keyboardKey !='v')  &&
-			  (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='L') && (keyInput.keyboardKey !='l') &&
+			  (keyInput.gbaKeys != (KEY_START)) && (keyInput.keyboardKey !='R') && (keyInput.keyboardKey !='r') &&
 			  (keyInput.gbaKeys != (KEY_SELECT)) && (keyInput.keyboardKey !='S') && (keyInput.keyboardKey !='s') &&
 			  (keyInput.gbaKeys != (KEY_RIGHT)) && (keyInput.keyboardKey !='Y') && (keyInput.keyboardKey !='y') );
 
 	if ( keyInput.gbaKeys == KEY_B || keyInput.keyboardKey == 'V' || keyInput.keyboardKey == 'v' ) {
 		PRINT("Let's VF DUMP\n");
 		romdump(true, false);
-	} else if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'L' || keyInput.keyboardKey == 'l') {
+	} else if (keyInput.gbaKeys == KEY_START || keyInput.keyboardKey == 'R' || keyInput.keyboardKey == 'r') {
 		PRINT("Let's GET VALUE REORDERING\n");
 		findVfValueReordering();
 	} else if (keyInput.gbaKeys == KEY_SELECT || keyInput.keyboardKey == 'S' || keyInput.keyboardKey == 's') {
